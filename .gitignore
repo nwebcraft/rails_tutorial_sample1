@@ -21,7 +21,7 @@ README.rdoc
 /vendor
 
 .DS_Store
-.swp
+*.swp
 .~
 .bak*
 .BAK*
