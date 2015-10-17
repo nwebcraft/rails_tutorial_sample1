@@ -35,7 +35,7 @@ describe User do
 
   describe "emailが不正な場合" do
     it "should be invalid" do
-      addresses = %w[user@foo,com user_at_foo.org example.user@foo. foo@bar_baz.com foo@bar+baz.com]
+      addresses = %w[user@foo,com user_at_foo.org example.user@foo. foo@bar_baz.com foo@bar+baz.com foo@bar..com]
       addresses.each do |invalid_address|
         @user.email = invalid_address
         expect(@user).not_to be_valid
@@ -61,6 +61,16 @@ describe User do
     end
 
     it { should_not be_valid }
+  end
+
+  describe "emailに大文字も入っている場合" do
+    let(:mixed_case_email) { "Foo@ExaMPle.CoM" }
+
+    it "全て小文字に変換されて保存されること" do
+      @user.email = mixed_case_email
+      @user.save
+      expect(@user.reload.email).to eq mixed_case_email.downcase
+    end
   end
 
   describe "パスワードが存在しない場合" do
