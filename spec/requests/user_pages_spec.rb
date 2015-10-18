@@ -15,6 +15,13 @@ describe "Userページ" do
       it "ユーザーが作成されないこと" do
         expect { click_button submit }.not_to change(User, :count)
       end
+
+      describe "サブミットボタン押下後にエラーが表示されること" do
+        before { click_button submit }
+
+        it { should have_title('Sign Up') }
+        it { should have_content('error') }
+      end
     end
 
     describe "正常なアカウント情報の場合" do
@@ -27,6 +34,14 @@ describe "Userページ" do
 
       it "ユーザーが作成されること" do
         expect { click_button submit }.to change(User, :count).by(1)
+      end
+
+      describe "ユーザー作成後にユーザー詳細画面で成功メッセージが表示されること" do
+        before { click_button submit }
+        let(:user) { User.find_by(email: "user@example.com") }
+
+        it { should have_title(user.name) }
+        it { should have_selector('div.alert-success', text: 'サンプルアプリへようこそ') }
       end
     end
   end
