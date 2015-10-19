@@ -25,12 +25,7 @@ describe "Userページ" do
     end
 
     describe "正常なアカウント情報の場合" do
-      before do
-        fill_in "名前",           with: "サンプル 太郎"
-        fill_in "Eメール",         with: "user@example.com"
-        fill_in "パスワード",      with: "password"
-        fill_in "パスワード(確認)", with: "password"
-      end
+      before { valid_user }
 
       it "ユーザーが作成されること" do
         expect { click_button submit }.to change(User, :count).by(1)
@@ -40,8 +35,9 @@ describe "Userページ" do
         before { click_button submit }
         let(:user) { User.find_by(email: "user@example.com") }
 
+        it { should have_link('Sign out') }
         it { should have_title(user.name) }
-        it { should have_selector('div.alert-success', text: 'サンプルアプリへようこそ') }
+        it { should have_success_message('サンプルアプリへようこそ') }
       end
     end
   end
