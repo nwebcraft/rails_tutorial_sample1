@@ -10,6 +10,17 @@ module SessionsHelper
     !current_user.nil?
   end
 
+  def signed_in_user
+    unless sign_in?
+      store_location
+      redirect_to signin_path, notice: "サインインしてください"
+    end
+  end
+
+  def non_signed_in_user
+    redirect_to root_url if sign_in?
+  end
+
   def current_user=(user)
     @current_user = user
   end

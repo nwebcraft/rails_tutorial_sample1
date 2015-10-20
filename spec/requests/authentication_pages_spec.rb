@@ -98,6 +98,19 @@ describe "認証" do
         end
       end
 
+      describe "マイクロポストコントローラー内" do
+
+        describe "POSTリクエストで登録処理の要求" do
+          before { post microposts_path }
+          specify { expect(response).to redirect_to(signin_path) }
+        end
+
+        describe "DELETEリクエストで削除処理の要求" do
+          before { delete micropost_path(FactoryGirl.create(:micropost)) }
+          specify { expect(response).to redirect_to(signin_path) }
+        end
+      end
+
       describe "編集ページにアクセスした場合" do
         before do
           visit edit_user_path(user)
@@ -155,13 +168,11 @@ describe "認証" do
     end
 
     describe "管理者ユーザー" do
-      let(:user)  { FactoryGirl.create(:user) }
-      #let(:admin) { FactoryGirl.create(:admin, email: "admin@example.com") }
+      let!(:user) { FactoryGirl.create(:user) }
       let(:admin) { FactoryGirl.create(:admin) }
       before { sign_in admin, no_capybara: true }
 
       describe "DELETEリクエストで削除処理を要求" do
-        before { user }
 
         it "should be able to delete another user" do
           expect do
@@ -172,7 +183,7 @@ describe "認証" do
         it "should not be able to delete self" do
           expect do
             delete user_path(admin)
-          end.not_to change(User, :count).by(-1)
+          end.not_to change(User, :count)
         end
       end
     end

@@ -90,10 +90,21 @@ describe "Userページ" do
 
   describe "profileページ" do
     let(:user) { FactoryGirl.create(:user) }
+    let!(:m1)  { FactoryGirl.create(:micropost, user: user, content: "１番目のマイクロポスト") }
+    let!(:m2)  { FactoryGirl.create(:micropost, user: user, content: "２番目のマイクロポスト") }
+
     before { visit user_path(user) }
 
-    it { should have_content(user.name) }
-    it { should have_title(user.name) }
+    describe "ユーザー情報表示" do
+      it { should have_content(user.name) }
+      it { should have_title(user.name) }
+    end
+
+    describe "マイクロポスト表示" do
+      it { should have_content(m1.content) }
+      it { should have_content(m2.content) }
+      it { should have_content(user.microposts.count) }
+    end
   end
 
   describe "編集ページ" do

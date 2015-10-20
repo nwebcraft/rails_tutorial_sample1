@@ -21,10 +21,4 @@ class SessionsController < ApplicationController
     sign_out
     redirect_to root_url
   end
-
-  private
-    def non_signed_in_user
-      redirect_to root_url if sign_in?
-    end
-
 end

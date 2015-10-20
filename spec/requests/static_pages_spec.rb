@@ -2,8 +2,6 @@ require 'spec_helper'
 
 describe "静的ページ" do
 
-  #let(:base_title) { "Railsチュートリアル サンプルアプリ" }
-
   subject { page }
 
   shared_examples_for "静的ページの表示について" do
@@ -18,6 +16,22 @@ describe "静的ページ" do
 
     it_should_behave_like "静的ページの表示について"
     it { should_not have_title(" | Home") }
+
+    describe "サインイン済みユーザーの場合" do
+      let(:user) { FactoryGirl.create(:user) }
+      before do
+        FactoryGirl.create(:micropost, user: user, content: "テスト投稿1")
+        FactoryGirl.create(:micropost, user: user, content: "テスト投稿2")
+        sign_in user
+        visit root_path
+      end
+
+      it "should render the user's feed" do
+        user.feed.each do |item|
+          expect(page).to have_selector("li##{item.id}", text: item.content)
+        end
+      end
+    end
   end
 
   describe "Helpページ" do
