@@ -1,4 +1,5 @@
 class SessionsController < ApplicationController
+  before_action :non_signed_in_user, only: :new
 
   def new
   end
@@ -20,5 +21,10 @@ class SessionsController < ApplicationController
     sign_out
     redirect_to root_url
   end
+
+  private
+    def non_signed_in_user
+      redirect_to root_url if sign_in?
+    end
 
 end

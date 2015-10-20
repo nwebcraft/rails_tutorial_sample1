@@ -72,6 +72,7 @@ describe "Userページ" do
       describe "管理者ユーザー" do
         let(:admin) { FactoryGirl.create(:admin) }
         before do
+          click_link "Sign out"
           sign_in admin
           visit users_path
         end
@@ -134,6 +135,18 @@ describe "Userページ" do
       it { should_not have_link('Sign in', href: signin_path) }
       specify { expect(user.reload.name).to  eq new_name }
       specify { expect(user.reload.email).to eq new_email }
+    end
+
+    describe "管理者権限が変更できないこと" do
+      let(:params) do
+        { user: { admin: true, name: "New name", email: "new@example.com", password: "newpass", password_confirmation: "newpass" } }
+      end
+
+      before do
+        sign_in user, no_capybara: true
+        patch user_path(user), params
+      end
+      specify { expect(user.reload).not_to be_admin }
     end
   end
 end

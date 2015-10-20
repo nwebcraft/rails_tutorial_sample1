@@ -44,8 +44,40 @@ describe "認証" do
 
   describe "権限" do
 
+    describe "サインイン済ユーザー" do
+      let(:user) { FactoryGirl.create(:user) }
+      let(:another_user_params) do
+          { user: { name: "Another user", email: "another@example.com", password: "password", password_confirmation: "password" } }
+      end
+      before { sign_in user, no_capybara: true }
+
+      describe "signinページにアクセスした場合" do
+        before { get signin_path }
+        specify { expect(response).to redirect_to root_url }
+      end
+
+      describe "signupページにアクセスした場合" do
+        before { get signup_path }
+        specify { expect(response).to redirect_to root_url }
+      end
+
+      describe "POSTリクエストで登録処理の要求" do
+        before { post users_path, another_user_params }
+        specify { expect(response).to redirect_to root_url }
+      end
+    end
+
     describe "未サインインユーザー" do
       let(:user) { FactoryGirl.create(:user) }
+
+      describe "サインインのリンクのみの表示であること" do
+        before { visit root_path }
+        it { should     have_link('Sign in',  href: signin_path) }
+        it { should_not have_link('Users',    href: users_path) }
+        it { should_not have_link('Profile',  href: user_path(user)) }
+        it { should_not have_link('Settings', href: edit_user_path(user)) }
+        it { should_not have_link('Sign out', href: signout_path) }
+      end
 
       describe "ユーザーコントローラー内" do
 
@@ -60,7 +92,7 @@ describe "認証" do
           it { should have_content('サインインしてください') }
         end
 
-        describe "更新処理の要求(PATCHリクエスト)" do
+        describe "PATCHリクエストで更新処理の要求" do
           before { patch user_path(user) }
           specify { expect(response).to redirect_to(signin_path) }
         end
@@ -78,6 +110,17 @@ describe "認証" do
 
           it "should render the desired protected page" do
             expect(page).to have_title('Edit user')
+          end
+
+          describe "再度サインインしなおした場合はプロフィールページへリダイレクトされること" do
+            before do
+              click_link "Sign out"
+              sign_in user
+            end
+
+            it "should render the profile page" do
+              expect(page).to have_title(user.name)
+            end
           end
         end
       end
@@ -102,13 +145,35 @@ describe "認証" do
 
     describe "非管理者ユーザー" do
       let(:target_user) { FactoryGirl.create(:user) }
-      let(:non_admin)   { FactoryGirl.create(:user) }
-
+      let(:non_admin)   { FactoryGirl.create(:user, email: "non_admin@example.com") }
       before { sign_in non_admin, no_capybara: true }
 
       describe "DELETEリクエストで削除処理を要求" do
         before { delete user_path(target_user) }
         specify { expect(response).to redirect_to(root_url) }
+      end
+    end
+
+    describe "管理者ユーザー" do
+      let(:user)  { FactoryGirl.create(:user) }
+      #let(:admin) { FactoryGirl.create(:admin, email: "admin@example.com") }
+      let(:admin) { FactoryGirl.create(:admin) }
+      before { sign_in admin, no_capybara: true }
+
+      describe "DELETEリクエストで削除処理を要求" do
+        before { user }
+
+        it "should be able to delete another user" do
+          expect do
+            delete user_path(user)
+          end.to change(User, :count).by(-1)
+        end
+
+        it "should not be able to delete self" do
+          expect do
+            delete user_path(admin)
+          end.not_to change(User, :count).by(-1)
+        end
       end
     end
   end

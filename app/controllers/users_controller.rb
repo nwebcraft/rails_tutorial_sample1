@@ -1,7 +1,8 @@
 class UsersController < ApplicationController
-  before_action :signed_in_user, only: [:index, :edit, :update, :destroy]
-  before_action :correct_user,   only: [:edit, :update]
-  before_action :admin_user,     only: :destroy
+  before_action :non_signed_in_user, only: [:new, :create]
+  before_action :signed_in_user,     only: [:index, :edit, :update, :destroy]
+  before_action :correct_user,       only: [:edit, :update]
+  before_action :admin_user,         only: :destroy
 
   def index
     @users = User.paginate(page: params[:page])
@@ -39,7 +40,7 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    User.find(params[:id]).destroy
+    @user.destroy
     flash[:success] = "ユーザーは削除されました"
     redirect_to users_url
   end
@@ -56,6 +57,10 @@ class UsersController < ApplicationController
       end
     end
 
+    def non_signed_in_user
+      redirect_to root_url if sign_in?
+    end
+
     def correct_user
       @user = User.find(params[:id])
       redirect_to root_url unless current_user? @user
@@ -63,5 +68,7 @@ class UsersController < ApplicationController
 
     def admin_user
       redirect_to root_url unless current_user.admin?
+      @user = User.find(params[:id])
+      redirect_to root_url if current_user? @user
     end
 end
