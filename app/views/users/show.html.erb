@@ -7,8 +7,12 @@
         <%= @user.name %>
       </h1>
     </section>
+    <section>
+      <%= render partial: 'shared/stats', locals: { user: @user } %>
+    </section>
   </aside>
   <div class="span8">
+    <%= render 'follow_form' if sign_in? %>
     <% if @user.microposts.any? %>
       <h3>ひとこと投稿(<%= @user.microposts.count %>)</h3>
       <ol class="microposts">

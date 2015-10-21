@@ -19,6 +19,10 @@ describe User do
   it { should respond_to(:admin) }
   it { should respond_to(:microposts) }
   it { should respond_to(:feed) }
+  it { should respond_to(:relationships) }
+  it { should respond_to(:followed_users) }
+  it { should respond_to(:reverse_relationships) }
+  it { should respond_to(:followers) }
 
   it { should be_valid }
   it { should_not be_admin}
@@ -156,10 +160,46 @@ describe User do
       let(:unfollowed_post) do
         FactoryGirl.create(:micropost, user: FactoryGirl.create(:user))
       end
+      let!(:followed_user) { FactoryGirl.create(:user) }
+
+      before do
+        3.times do
+          followed_user.microposts.create(content: "フォロワーのコメント")
+        end
+        @user.follow!(followed_user)
+      end
 
       its(:feed) { should include(newer_micropost) }
       its(:feed) { should include(older_micropost) }
       its(:feed) { should_not include(unfollowed_post) }
+      its(:feed) do
+        followed_user.microposts.each do |micropost|
+          should include(micropost)
+        end
+      end
+    end
+  end
+
+  describe "フォロー関連" do
+    let(:another_user) { FactoryGirl.create(:user) }
+    before do
+      @user.save
+      @user.follow!(another_user)
+    end
+
+    it { should be_following(another_user) }
+    its(:followed_users) { should include(another_user) }
+
+    describe "フォローワー" do
+      subject { another_user }
+      its(:followers) { should include(@user) }
+    end
+
+    describe "フォロー解除" do
+      before { @user.unfollow!(another_user) }
+
+      it { should_not be_following(another_user) }
+      its(:followed_users) { should_not include(another_user) }
     end
   end
 end

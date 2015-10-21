@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   before_action :non_signed_in_user, only: [:new, :create]
-  before_action :signed_in_user,     only: [:index, :edit, :update, :destroy]
+  before_action :signed_in_user,     only: [:index, :edit, :update, :destroy, :following, :followers]
   before_action :correct_user,       only: [:edit, :update]
   before_action :admin_user,         only: :destroy
 
@@ -44,6 +44,20 @@ class UsersController < ApplicationController
     @user.destroy
     flash[:success] = "ユーザーは削除されました"
     redirect_to users_url
+  end
+
+  def following
+    page_info = { title: 'Following', h3: 'フォローしているひと' }
+    user  = User.find(params[:id])
+    users = user.followed_users.paginate(page: params[:page], per_page: 10)
+    render 'show_follow', locals: { page_info: page_info, user: user, users: users }
+  end
+
+  def followers
+    page_info = { title: 'Followers', h3: 'フォローされているひと' }
+    user  = User.find(params[:id])
+    users = user.followers.paginate(page: params[:page], per_page: 15)
+    render 'show_follow', locals: { page_info: page_info, user: user, users: users }
   end
 
   private

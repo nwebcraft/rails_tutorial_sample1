@@ -96,6 +96,16 @@ describe "認証" do
           before { patch user_path(user) }
           specify { expect(response).to redirect_to(signin_path) }
         end
+
+        describe "フォローしているユーザーのページ" do
+          before { visit following_user_path(user) }
+          it { should have_title('Sign In') }
+        end
+
+        describe "フォロワーユーザーのページ" do
+          before { visit followers_user_path(user) }
+          it { should have_title('Sign In') }
+        end
       end
 
       describe "マイクロポストコントローラー内" do
@@ -107,6 +117,19 @@ describe "認証" do
 
         describe "DELETEリクエストで削除処理の要求" do
           before { delete micropost_path(FactoryGirl.create(:micropost)) }
+          specify { expect(response).to redirect_to(signin_path) }
+        end
+      end
+
+      describe "リレーションシップコントローラー内" do
+
+        describe "POSTリクエストでの登録処理の要求" do
+          before { post relationships_path }
+          specify { expect(response).to redirect_to(signin_path) }
+        end
+
+        describe "DELETEリクエストでの削除処理の要求" do
+          before { delete relationship_path(1) }
           specify { expect(response).to redirect_to(signin_path) }
         end
       end

@@ -105,6 +105,56 @@ describe "Userページ" do
       it { should have_content(m2.content) }
       it { should have_content(user.microposts.count) }
     end
+
+    describe "フォロー/フォロー解除ボタン" do
+      let(:other_user) { FactoryGirl.create(:user) }
+      before { sign_in user }
+
+      describe "ユーザーをフォローする" do
+        before { visit user_path(other_user) }
+
+        it "フォローしているユーザー数が増えること" do
+          expect do
+            click_button 'フォローする'
+          end.to change(user.followed_users, :count).by(1)
+        end
+
+        it "フォローされたユーザーのフォロワー数が増えること" do
+          expect do
+            click_button 'フォローする'
+          end.to change(other_user.followers, :count).by(1)
+        end
+
+        describe "ボタンの表示が切り替わること" do
+          before { click_button 'フォローする' }
+          it { should have_xpath("//input[@value='フォロー解除する']") }
+        end
+      end
+
+      describe "ユーザーをフォロー解除する" do
+        before do
+          user.follow!(other_user)
+          visit user_path(other_user)
+        end
+
+        it "フォローしているユーザー数が減ること" do
+          expect do
+            click_button 'フォロー解除する'
+          end.to change(user.followed_users, :count).by(-1)
+        end
+
+        it "フォロー解除されたユーザーのフォロワー数が減ること" do
+          expect do
+            click_button 'フォロー解除する'
+          end.to change(other_user.followers, :count).by(-1)
+        end
+
+        describe "ボタンの表示が切り替わること" do
+          before { click_button 'フォロー解除する' }
+          it { should have_xpath("//input[@value='フォローする']") }
+        end
+      end
+    end
   end
 
   describe "編集ページ" do
@@ -158,6 +208,34 @@ describe "Userページ" do
         patch user_path(user), params
       end
       specify { expect(user.reload).not_to be_admin }
+    end
+  end
+
+  describe "フォロー/フォロワーユーザーページ" do
+    let(:user) { FactoryGirl.create(:user) }
+    let(:other_user) { FactoryGirl.create(:user) }
+    before { user.follow! other_user }
+
+    describe "フォローしているユーザーのページ" do
+      before do
+        sign_in user
+        visit following_user_path(user)
+      end
+
+      it { should have_title(full_title('Following')) }
+      it { should have_selector('h3', text: 'フォローしているひと') }
+      it { should have_link(other_user.name, href: user_path(other_user)) }
+    end
+
+    describe "フォロワーのページ" do
+      before do
+        sign_in other_user
+        visit followers_user_path(other_user)
+      end
+
+      it { should have_title(full_title('Followers')) }
+      it { should have_selector('h3', text: 'フォローされているひと') }
+      it { should have_link(user.name, href: user_path(user)) }
     end
   end
 end

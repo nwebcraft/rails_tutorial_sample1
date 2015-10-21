@@ -31,6 +31,24 @@ describe "静的ページ" do
           expect(page).to have_selector("li##{item.id}", text: item.content)
         end
       end
+
+      describe "フォロー/フォロワー数を表示すること" do
+        let(:other_user1) { FactoryGirl.create(:user) }
+        let(:other_user2) { FactoryGirl.create(:user) }
+        let(:other_user3) { FactoryGirl.create(:user) }
+        let(:other_user4) { FactoryGirl.create(:user) }
+        before do
+          other_user1.follow!(user)
+          other_user2.follow!(user)
+          other_user3.follow!(user)
+          user.follow!(other_user2)
+          user.follow!(other_user4)
+          visit root_path
+        end
+
+        it { should have_link("2 following", href: following_user_path(user)) }
+        it { should have_link("3 followers", href: followers_user_path(user)) }
+      end
     end
   end
 
